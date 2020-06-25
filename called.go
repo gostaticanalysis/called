@@ -9,10 +9,12 @@ import (
 	"golang.org/x/tools/go/analysis/passes/buildssa"
 )
 
+const analyzerName = "called"
+
 var flagFuncs string
 
 var Analyzer = &analysis.Analyzer{
-	Name: "called",
+	Name: analyzerName,
 	Doc:  Doc,
 	Run:  run,
 	Requires: []*analysis.Analyzer{
@@ -36,7 +38,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	pass.Report = analysisutil.ReportWithoutIgnore(pass, "called")
+	pass.Report = analysisutil.ReportWithoutIgnore(pass, analyzerName)
 	srcFuncs := pass.ResultOf[buildssa.Analyzer].(*buildssa.SSA).SrcFuncs
 	for _, sf := range srcFuncs {
 		for _, b := range sf.Blocks {
