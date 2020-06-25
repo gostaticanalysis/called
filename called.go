@@ -5,13 +5,13 @@ import (
 	"strings"
 
 	"github.com/gostaticanalysis/analysisutil"
+	"github.com/gostaticanalysis/comment"
+	"github.com/gostaticanalysis/comment/passes/commentmap"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/buildssa"
 )
 
-var (
-	flagFuncs string
-)
+var flagFuncs string
 
 var Analyzer = &analysis.Analyzer{
 	Name: "called",
@@ -19,6 +19,7 @@ var Analyzer = &analysis.Analyzer{
 	Run:  run,
 	Requires: []*analysis.Analyzer{
 		buildssa.Analyzer,
+		commentmap.Analyzer,
 	},
 }
 
@@ -38,12 +39,16 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
+	cmaps := pass.ResultOf[commentmap.Analyzer].(comment.Maps)
 	srcFuncs := pass.ResultOf[buildssa.Analyzer].(*buildssa.SSA).SrcFuncs
 	for _, sf := range srcFuncs {
 		for _, b := range sf.Blocks {
 			for _, instr := range b.Instrs {
+				pos := instr.Pos()
 				for _, f := range fs {
-					if analysisutil.Called(instr, nil, f) {
+					l := pass.Fset.File(pos).Line(pos)
+					if !cmaps.IgnoreLine(pass.Fset, l, "called") &&
+						analysisutil.Called(instr, nil, f) {
 						pass.Reportf(instr.Pos(), "%s must not be called", f.FullName())
 						break
 					}
