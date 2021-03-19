@@ -1,6 +1,6 @@
 # called
 
-[![godoc.org][godoc-badge]][godoc]
+[![pkg.go.dev][gopkg-badge]][gopkg]
 
 `called` called find callings specified by called.funcs flag.
 
@@ -37,6 +37,5 @@ func main() {
 ```
 
 <!-- links -->
-[godoc]: https://godoc.org/github.com/gostaticanalysis/called
-[godoc-badge]: https://img.shields.io/badge/godoc-reference-4F73B3.svg?style=flat-square&label=%20godoc.org
-
+[gopkg]: https://pkg.go.dev/github.com/gostaticanalysis/called
+[gopkg-badge]: https://pkg.go.dev/badge/github.com/gostaticanalysis/called?status.svg
