@@ -57,39 +57,71 @@ func run(pass *analysis.Pass) (interface{}, error) {
 func restrictedFuncs(pass *analysis.Pass, names string) []*types.Func {
 	var fs []*types.Func
 	for _, fn := range strings.Split(names, ",") {
-		ss := strings.Split(strings.TrimSpace(fn), ".")
-
-		// package function: pkgname.Func
-		if len(ss) < 2 {
-			continue
-		}
-		f, _ := analysisutil.ObjectOf(pass, ss[0], ss[1]).(*types.Func)
-		if f != nil {
-			fs = append(fs, f)
+		fn = strings.TrimSpace(fn)
+		if len(fn) == 0 {
 			continue
 		}
 
-		// method: (*pkgname.Type).Method
-		if len(ss) < 3 {
-			continue
-		}
-		pkgname := strings.TrimLeft(ss[0], "(")
-		typename := strings.TrimRight(ss[1], ")")
-		if pkgname != "" && pkgname[0] == '*' {
-			pkgname = pkgname[1:]
-			typename = "*" + typename
-		}
+		if fn[0] == '(' {
+			// method: (*pkgname.Type).Method
+			ss := splitLastN(fn, ".", 3)
+			if len(ss) < 3 {
+				continue
+			}
+			pkgname := strings.TrimLeft(ss[0], "(")
+			typename := strings.TrimRight(ss[1], ")")
+			if pkgname != "" && pkgname[0] == '*' {
+				pkgname = pkgname[1:]
+				typename = "*" + typename
+			}
 
-		typ := analysisutil.TypeOf(pass, pkgname, typename)
-		if typ == nil {
-			continue
-		}
+			typ := analysisutil.TypeOf(pass, pkgname, typename)
+			if typ == nil {
+				continue
+			}
 
-		m := analysisutil.MethodOf(typ, ss[2])
-		if m != nil {
-			fs = append(fs, m)
+			m := analysisutil.MethodOf(typ, ss[2])
+			if m != nil {
+				fs = append(fs, m)
+			}
+		} else {
+			// package function: pkgname.Func
+			ss := splitLastN(fn, ".", 2)
+			if len(ss) < 2 {
+				continue
+			}
+			f, _ := analysisutil.ObjectOf(pass, ss[0], ss[1]).(*types.Func)
+			if f != nil {
+				fs = append(fs, f)
+				continue
+			}
 		}
 	}
 
 	return fs
+}
+
+func splitLastN(s, sep string, n int) []string {
+	ret := make([]string, 0)
+	for i := 0; i < n-1; i++ {
+		li := strings.LastIndex(s, sep)
+		if li < 0 {
+			break
+		}
+
+		if li+1 < len(s) {
+			ret = append(ret, s[li+1:])
+		} else {
+			ret = append(ret, "")
+		}
+		s = s[:li]
+	}
+	ret = append(ret, s)
+
+	// reverse
+	for i, j := 0, len(ret)-1; i < j; i, j = i+1, j-1 {
+		ret[i], ret[j] = ret[j], ret[i]
+	}
+
+	return ret
 }
