@@ -55,7 +55,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 }
 
 func restrictedFuncs(pass *analysis.Pass, names string) []*types.Func {
-	var fs []*types.Func
+	var (
+		fs   []*types.Func
+		seen = map[*types.Func]struct{}{}
+	)
 	for _, fn := range strings.Split(names, ",") {
 		ss := strings.Split(strings.TrimSpace(fn), ".")
 
@@ -65,7 +68,10 @@ func restrictedFuncs(pass *analysis.Pass, names string) []*types.Func {
 		}
 		f, _ := analysisutil.ObjectOf(pass, ss[0], ss[1]).(*types.Func)
 		if f != nil {
-			fs = append(fs, f)
+			if _, ok := seen[f]; !ok {
+				fs = append(fs, f)
+				seen[f] = struct{}{}
+			}
 			continue
 		}
 
@@ -87,7 +93,10 @@ func restrictedFuncs(pass *analysis.Pass, names string) []*types.Func {
 
 		m := analysisutil.MethodOf(typ, ss[2])
 		if m != nil {
-			fs = append(fs, m)
+			if _, ok := seen[m]; !ok {
+				fs = append(fs, m)
+				seen[m] = struct{}{}
+			}
 		}
 	}
 
