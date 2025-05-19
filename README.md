@@ -21,9 +21,9 @@ $ go vet -vettool=`which called` -called.funcs="log.Fatal" main.go
 
 ## Ignore Checks
 
-Analyzers ignore nodes which are annotated by [staticcheck's style comments](https://staticcheck.io/docs/#ignoring-problems) as belows.
-A ignore comment includes analyzer names and reason of ignoring checking.
-If you specify `called` as analyzer name, all analyzers ignore corresponding code.
+Analyzers ignore nodes annotated with [staticcheck's style comments](https://staticcheck.io/docs/#ignoring-problems) as below.
+An ignore comment includes the analyzer names and a reason for disabling the check.
+If you specify `called` as an analyzer name, all analyzers ignore the corresponding code.
 
 ```go
 package main
