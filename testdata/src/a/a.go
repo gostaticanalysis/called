@@ -3,6 +3,9 @@ package a
 import (
 	"b"
 	"b/bsub"
+
+	"github.com/gostaticanalysis/c"
+	"github.com/gostaticanalysis/c/csub"
 )
 
 func afunc() {
@@ -52,6 +55,27 @@ func main() {
 	(bsub.Type).Method(bsub.Type{}) // OK
 	//lint:ignore called OK
 	m4(bsub.Type{}) // OK
+
+	c.Func()    // want `github\.com/gostaticanalysis/c\.Func must not be called`
+	_ = c.Func  // OK
+	g := c.Func // OK
+	g()         // want `github\.com/gostaticanalysis/c\.Func must not be called`
+
+	new(c.Type).Method()          // want `\(\*github\.com/gostaticanalysis/c\.Type\)\.Method must not be called`
+	_ = new(c.Type).Method        // OK
+	m5 := new(c.Type).Method      // OK
+	m5()                          // want `\(\*github\.com/gostaticanalysis/c\.Type\)\.Method must not be called`
+	(*c.Type).Method(new(c.Type)) // want `\(\*github\.com/gostaticanalysis/c\.Type\)\.Method must not be called`
+	m6 := (*c.Type).Method        // OK
+	m6(new(c.Type))               // want `\(\*github\.com/gostaticanalysis/c\.Type\)\.Method must not be called`
+
+	csub.Type{}.Method()            // want `\(github\.com/gostaticanalysis/c/csub\.Type\)\.Method must not be called`
+	_ = csub.Type{}.Method          // OK
+	m7 := csub.Type{}.Method        // OK
+	m7()                            // want `\(github\.com/gostaticanalysis/c/csub\.Type\)\.Method must not be called`
+	(csub.Type).Method(csub.Type{}) // want `\(github\.com/gostaticanalysis/c/csub\.Type\)\.Method must not be called`
+	m8 := (csub.Type).Method        // OK
+	m8(csub.Type{})                 // want `\(github\.com/gostaticanalysis/c/csub\.Type\)\.Method must not be called`
 
 	afunc() // OK
 }
