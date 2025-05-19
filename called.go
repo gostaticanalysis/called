@@ -24,7 +24,7 @@ func init() {
 	Analyzer.Flags.StringVar(&flagFuncs, "funcs", "", "function or method names which are restricted calling")
 }
 
-const Doc = "called find callings specified by called.funcs flag"
+const Doc = "called finds calls specified by the called.funcs flag"
 
 func run(pass *analysis.Pass) (interface{}, error) {
 	if flagFuncs == "" {
