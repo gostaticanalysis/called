@@ -2,7 +2,7 @@
 
 [![pkg.go.dev][gopkg-badge]][gopkg]
 
-`called` called find callings specified by called.funcs flag.
+`called` finds calls specified by the `called.funcs` flag.
 
 ```go
 package main
