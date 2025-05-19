@@ -57,37 +57,56 @@ func run(pass *analysis.Pass) (interface{}, error) {
 func restrictedFuncs(pass *analysis.Pass, names string) []*types.Func {
 	var fs []*types.Func
 	for _, fn := range strings.Split(names, ",") {
-		ss := strings.Split(strings.TrimSpace(fn), ".")
-
-		// package function: pkgname.Func
-		if len(ss) < 2 {
+		fn = strings.TrimSpace(fn)
+		if fn == "" {
 			continue
 		}
-		f, _ := analysisutil.ObjectOf(pass, ss[0], ss[1]).(*types.Func)
+
+		// split function/method name from the end
+		last := strings.LastIndex(fn, ".")
+		if last == -1 {
+			continue
+		}
+		prefix := fn[:last]
+		name := fn[last+1:]
+
+		// drop surrounding parentheses and detect pointer receiver
+		recv := strings.TrimPrefix(prefix, "(")
+		recv = strings.TrimSuffix(recv, ")")
+		ptr := false
+		if strings.HasPrefix(recv, "*") {
+			ptr = true
+			recv = recv[1:]
+		}
+
+		// determine whether it is a method or a package function
+		dot := strings.LastIndex(recv, ".")
+		slash := strings.LastIndex(recv, "/")
+		if dot != -1 && dot > slash {
+			// method: pkgpath.Type.Method or (*pkgpath.Type).Method
+			pkgpath := recv[:dot]
+			typename := recv[dot+1:]
+			if ptr {
+				typename = "*" + typename
+			}
+			typ := analysisutil.TypeOf(pass, pkgpath, typename)
+			if typ == nil {
+				continue
+			}
+			if m := analysisutil.MethodOf(typ, name); m != nil {
+				fs = append(fs, m)
+			}
+			continue
+		}
+
+		// package function: pkgpath.Func
+		if ptr {
+			// invalid pattern
+			continue
+		}
+		f, _ := analysisutil.ObjectOf(pass, recv, name).(*types.Func)
 		if f != nil {
 			fs = append(fs, f)
-			continue
-		}
-
-		// method: (*pkgname.Type).Method
-		if len(ss) < 3 {
-			continue
-		}
-		pkgname := strings.TrimLeft(ss[0], "(")
-		typename := strings.TrimRight(ss[1], ")")
-		if pkgname != "" && pkgname[0] == '*' {
-			pkgname = pkgname[1:]
-			typename = "*" + typename
-		}
-
-		typ := analysisutil.TypeOf(pass, pkgname, typename)
-		if typ == nil {
-			continue
-		}
-
-		m := analysisutil.MethodOf(typ, ss[2])
-		if m != nil {
-			fs = append(fs, m)
 		}
 	}
 
