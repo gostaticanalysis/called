@@ -1,6 +1,6 @@
 module github.com/gostaticanalysis/called
 
-go 1.22.0
+go 1.24.3
 
 require (
 	github.com/gostaticanalysis/analysisutil v0.7.1
