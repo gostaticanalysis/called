@@ -9,6 +9,6 @@ import (
 
 func Test(t *testing.T) {
 	testdata := analysistest.TestData()
-	defer called.ExportSetFlagFuncs("b.Func,(*b.Type).Method, b/bsub.Type.Method")()
-	analysistest.Run(t, testdata, called.Analyzer, "a")
+	defer called.ExportSetFlagFuncs("b.Func,(*b.Type).Method,b/bsub.Type.Method,example.com/foo.Func,(example.com/foo.Type).Method")()
+	analysistest.Run(t, testdata, called.Analyzer, "a", "c")
 }
