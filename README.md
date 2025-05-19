@@ -35,7 +35,14 @@ func main() {
 	log.Fatal("hoge")
 }
 ```
+## Release
+
+This repository uses [tagpr] to automatically create release pull requests when
+changes are merged to the main branch. The current version is stored in the
+`VERSION` file and TagPR reads settings from `.tagpr`.
+
 
 <!-- links -->
 [gopkg]: https://pkg.go.dev/github.com/gostaticanalysis/called
 [gopkg-badge]: https://pkg.go.dev/badge/github.com/gostaticanalysis/called?status.svg
+[tagpr]: https://github.com/Songmu/tagpr
